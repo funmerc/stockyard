@@ -25,19 +25,21 @@ defineEmits<{ confirm: []; cancel: [] }>()
         </span>
       </header>
 
-      <section class="block">
-        <div class="label">STATEMENT</div>
-        <pre class="sql">{{ sql }}</pre>
-      </section>
+      <div class="body">
+        <section class="block">
+          <div class="label">STATEMENT</div>
+          <pre class="sql">{{ sql }}</pre>
+        </section>
 
-      <div v-if="preview && preview.affectedCount !== null" class="count">
-        <strong>{{ preview.affectedCount }}</strong>
-        row{{ preview.affectedCount === 1 ? '' : 's' }} affected
-        <span class="muted">· verified by dry-run</span>
-      </div>
-      <div v-else class="warn">
-        Affected rows can't be previewed on a remote database — this runs immediately and cannot be
-        undone.
+        <div v-if="preview && preview.affectedCount !== null" class="count">
+          <strong>{{ preview.affectedCount }}</strong>
+          row{{ preview.affectedCount === 1 ? '' : 's' }} affected
+          <span class="muted">· verified by dry-run</span>
+        </div>
+        <div v-else class="warn">
+          Affected rows can't be previewed on a remote database — this runs immediately and cannot
+          be undone.
+        </div>
       </div>
 
       <div v-if="error" class="error">{{ error }}</div>
@@ -83,6 +85,16 @@ defineEmits<{ confirm: []; cancel: [] }>()
   font-size: 17px;
   font-weight: 700;
 }
+/* Scrollable middle region: panel grows to its max, then this scrolls instead
+   of pushing the footer off-screen. */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .prod {
   font-size: 10px;
   font-weight: 700;
@@ -114,6 +126,7 @@ defineEmits<{ confirm: []; cancel: [] }>()
   font-size: 12.5px;
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: 50vh;
   overflow: auto;
 }
 .count {

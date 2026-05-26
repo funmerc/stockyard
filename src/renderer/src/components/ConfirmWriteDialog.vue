@@ -70,81 +70,89 @@ const deleteColumns = computed(() => {
         </span>
       </header>
 
-      <div v-if="loading" class="muted">Preparing preview…</div>
+      <div class="body">
+        <div v-if="loading" class="muted">Preparing preview…</div>
 
-      <template v-else-if="preview">
-        <section class="block">
-          <div class="label">STATEMENT</div>
-          <pre class="sql">{{ sqlDisplay }}</pre>
-        </section>
+        <template v-else-if="preview">
+          <section class="block">
+            <div class="label">STATEMENT</div>
+            <pre class="sql">{{ sqlDisplay }}</pre>
+          </section>
 
-        <section v-if="op.kind === 'update'" class="block">
-          <div class="label">CHANGES</div>
-          <table class="kv">
-            <thead>
-              <tr>
-                <th>Column</th>
-                <th>Before</th>
-                <th>After</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="diff in updateDiff" :key="diff.col">
-                <td class="col">{{ diff.col }}</td>
-                <td class="before">{{ cell(diff.before) }}</td>
-                <td class="after">{{ cell(diff.after) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section v-else-if="op.kind === 'insert'" class="block">
-          <div class="label">NEW ROW</div>
-          <table v-if="insertValues.length" class="kv">
-            <thead>
-              <tr>
-                <th>Column</th>
-                <th>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="entry in insertValues" :key="entry.col">
-                <td class="col">{{ entry.col }}</td>
-                <td>{{ cell(entry.value) }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div v-else class="muted">All columns use their defaults.</div>
-        </section>
-
-        <section v-else class="block">
-          <div class="label">ROW(S) TO DELETE</div>
-          <div v-if="deleteColumns.length" class="rows">
-            <table>
+          <section v-if="op.kind === 'update'" class="block">
+            <div class="label">CHANGES</div>
+            <table class="kv">
               <thead>
                 <tr>
-                  <th v-for="column in deleteColumns" :key="column">{{ column }}</th>
+                  <th>Column</th>
+                  <th>Before</th>
+                  <th>After</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, rowIndex) in preview.affectedRows.slice(0, 50)" :key="rowIndex">
-                  <td v-for="column in deleteColumns" :key="column">{{ cell(row[column]) }}</td>
+                <tr v-for="diff in updateDiff" :key="diff.col">
+                  <td class="col">{{ diff.col }}</td>
+                  <td class="before">
+                    <div class="cellval">{{ cell(diff.before) }}</div>
+                  </td>
+                  <td class="after">
+                    <div class="cellval">{{ cell(diff.after) }}</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
-            <div v-if="preview.affectedRows.length > 50" class="muted more">
-              …and {{ preview.affectedRows.length - 50 }} more
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <div class="count">
-          <strong>{{ preview.affectedCount }}</strong>
-          row{{ preview.affectedCount === 1 ? '' : 's' }}
-          {{ op.kind === 'insert' ? 'to insert' : 'affected' }}
-          <span class="muted">· {{ preview.dryRun ? 'verified by dry-run' : 'estimated' }}</span>
-        </div>
-      </template>
+          <section v-else-if="op.kind === 'insert'" class="block">
+            <div class="label">NEW ROW</div>
+            <table v-if="insertValues.length" class="kv">
+              <thead>
+                <tr>
+                  <th>Column</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="entry in insertValues" :key="entry.col">
+                  <td class="col">{{ entry.col }}</td>
+                  <td>
+                    <div class="cellval">{{ cell(entry.value) }}</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="muted">All columns use their defaults.</div>
+          </section>
+
+          <section v-else class="block">
+            <div class="label">ROW(S) TO DELETE</div>
+            <div v-if="deleteColumns.length" class="rows">
+              <table>
+                <thead>
+                  <tr>
+                    <th v-for="column in deleteColumns" :key="column">{{ column }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIndex) in preview.affectedRows.slice(0, 50)" :key="rowIndex">
+                    <td v-for="column in deleteColumns" :key="column">{{ cell(row[column]) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="preview.affectedRows.length > 50" class="muted more">
+                …and {{ preview.affectedRows.length - 50 }} more
+              </div>
+            </div>
+          </section>
+
+          <div class="count">
+            <strong>{{ preview.affectedCount }}</strong>
+            row{{ preview.affectedCount === 1 ? '' : 's' }}
+            {{ op.kind === 'insert' ? 'to insert' : 'affected' }}
+            <span class="muted">· {{ preview.dryRun ? 'verified by dry-run' : 'estimated' }}</span>
+          </div>
+        </template>
+      </div>
 
       <div v-if="error" class="error">{{ error }}</div>
 
@@ -192,6 +200,16 @@ const deleteColumns = computed(() => {
   font-size: 17px;
   font-weight: 700;
 }
+/* Scrollable middle region: panel grows to its max, then this scrolls instead
+   of pushing the footer off-screen. */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .prod {
   font-size: 10px;
   font-weight: 700;
@@ -223,6 +241,8 @@ const deleteColumns = computed(() => {
   font-size: 12.5px;
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: 30vh;
+  overflow: auto;
 }
 .kv,
 .rows table {
@@ -240,6 +260,7 @@ const deleteColumns = computed(() => {
 }
 .rows {
   overflow: auto;
+  max-height: 50vh;
   border: 1px solid var(--ev-c-gray-3);
   border-radius: 6px;
 }
@@ -260,6 +281,14 @@ const deleteColumns = computed(() => {
   white-space: normal;
   word-break: break-word;
   vertical-align: top;
+}
+/* Large blob values get their own bounded scroll so before/after stay
+   side-by-side and comparable instead of running off the panel. */
+.cellval {
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 /* Affected-rows (delete) scroll horizontally rather than wrap. */
 .rows th,
