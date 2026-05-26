@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useConnections } from '../composables/useConnections'
 
 const emit = defineEmits<{ close: [] }>()
@@ -8,6 +8,21 @@ const { connections, remove, rename, addRemote, addLocal, pickFolder } = useConn
 
 // Which add form is open (undefined = show the two chooser buttons).
 const mode = ref<'remote' | 'local'>()
+
+// Token-help popover shown from the info icon in the remote form head.
+const showHelp = ref(false)
+const helpWrap = ref<HTMLElement>()
+
+function toggleHelp(): void {
+  showHelp.value = !showHelp.value
+}
+
+// Close the popover when clicking anywhere outside it.
+function onDocPointerDown(event: PointerEvent): void {
+  if (helpWrap.value && !helpWrap.value.contains(event.target as Node)) showHelp.value = false
+}
+window.addEventListener('pointerdown', onDocPointerDown, true)
+onBeforeUnmount(() => window.removeEventListener('pointerdown', onDocPointerDown, true))
 
 // Add-remote form
 const remoteLabel = ref('')
@@ -32,6 +47,7 @@ const localPathInvalid = computed(() => localAttempted.value && !localPath.value
 // Back to the chooser, discarding any in-progress input.
 function resetMode(): void {
   mode.value = undefined
+  showHelp.value = false
   remoteLabel.value = ''
   remoteToken.value = ''
   remoteError.value = ''
@@ -137,7 +153,38 @@ async function saveEdit(): Promise<void> {
       <!-- Full-width form for the chosen kind. -->
       <form v-else-if="mode === 'remote'" class="add-form" @submit.prevent="submitRemote">
         <div class="add-form-head">
-          <h3>Add Cloudflare token</h3>
+          <div ref="helpWrap" class="head-label">
+            <h3>Add Cloudflare token</h3>
+            <button
+              class="info-btn"
+              type="button"
+              aria-label="How to create an API token"
+              :aria-expanded="showHelp"
+              @click="toggleHelp"
+            >
+              <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+                <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3" />
+                <circle cx="8" cy="4.5" r="0.95" fill="currentColor" />
+                <rect x="7.25" y="6.75" width="1.5" height="5" rx="0.6" fill="currentColor" />
+              </svg>
+            </button>
+            <div v-if="showHelp" class="help-pop" role="dialog">
+              <a
+                class="help-link"
+                href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                How to create a API token ↗
+              </a>
+              <p class="help-perms-title">Permissions this app needs:</p>
+              <ul class="help-perms">
+                <li>Account · Access — <strong>Read</strong></li>
+                <li>Account · D1 — <strong>Edit</strong></li>
+                <li>Account · Account Settings — <strong>Read</strong></li>
+              </ul>
+            </div>
+          </div>
           <button class="link" type="button" @click="resetMode">Cancel</button>
         </div>
         <input
@@ -270,6 +317,63 @@ async function saveEdit(): Promise<void> {
   font-size: 13px;
   font-weight: 600;
   color: var(--ev-c-text-2);
+}
+.head-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ev-c-text-3);
+  cursor: pointer;
+}
+.info-btn:hover,
+.info-btn[aria-expanded='true'] {
+  color: #3178c6;
+}
+.help-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1000;
+  width: 260px;
+  padding: 12px;
+  background: var(--color-background-soft);
+  border: 1px solid var(--ev-c-gray-3);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.help-link {
+  color: #3178c6;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.help-link:hover {
+  text-decoration: underline;
+}
+.help-perms-title {
+  margin: 10px 0 4px;
+  font-size: 12px;
+  color: var(--ev-c-text-2);
+}
+.help-perms {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ev-c-text-3);
+}
+.help-perms strong {
+  color: var(--color-text);
+  font-weight: 600;
 }
 .input {
   background: var(--color-background-mute);
