@@ -1,0 +1,60 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+out
+*.tsbuildinfo
+
+# Logs & caches
+*.log*
+.eslintcache
+
+# Secrets / environment — never commit local keys or tokens
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+
+# App credential stores. These normally live in the OS userData dir (outside the
+# repo) and tokens are encrypted at rest, but ignore the names here as a safeguard
+# in case one is ever copied into the project for debugging.
+cf-credential.json
+connections.json
+ai-access.json
+
+# Code-signing certificates & private keys (electron-builder packaging)
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+*.crt
+*.keystore
+*.jks
+*.mobileprovision
+*.provisionprofile
+
+# Local databases / wrangler state — may contain real data
+.wrangler/
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.idea/
+*.swp
+*.swo
+*~
+
+# Internal planning notes (not for the public repo)
+plans/
+CLAUDE.md
+AGENTS.md
